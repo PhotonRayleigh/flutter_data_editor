@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:data_editor/app/controllers/filesystem_controller.dart';
+import 'fb_nav_drawer.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 //TODOs:
 // - Make file system watching sane and not crash
@@ -26,14 +28,17 @@ class FileBrowserState extends State<FileBrowser> {
   late TextEditingController textControl;
 
   FsController get fsCon {
-    return Get.put(FsController());
+    return Get.put(FsController(fileBrowserRefresh: flagUpdate));
   }
 
   @override
   void initState() {
     super.initState();
     textControl = TextEditingController();
-    start();
+    if (Platform.isAndroid || Platform.isIOS) {
+      requestPermissions().whenComplete(start);
+    } else
+      start();
   }
 
   Future start() async {
@@ -47,6 +52,14 @@ class FileBrowserState extends State<FileBrowser> {
         refreshDir();
       });
     refreshDir();
+  }
+
+  Future requestPermissions() async {
+    if (await Permission.storage.request().isGranted) {
+      print("Storage permission granted");
+    } else {
+      print("Storage permission NOT granted");
+    }
   }
 
   Future refreshDir() async {
@@ -86,11 +99,16 @@ class FileBrowserState extends State<FileBrowser> {
       keyboardType: TextInputType.url,
       onSubmitted: (val) async {
         var checkDir = Directory(val);
-        var exists = await checkDir.exists();
-        if (exists == false)
-          textControl.printError(info: "Invalid path");
-        else {
-          fsCon.setLocation(val).whenComplete(() => flagUpdate());
+        try {
+          var exists = await checkDir.exists();
+          if (exists == false)
+            textControl.printError(info: "Invalid path");
+          else {
+            fsCon.setLocation(val).whenComplete(() => flagUpdate());
+          }
+        } catch (e) {
+          print("Error in Directory.exists()");
+          print("Exception message: ${e.toString()}");
         }
       },
     );
@@ -118,6 +136,7 @@ class FileBrowserState extends State<FileBrowser> {
           ),
         ],
       ),
+      drawer: fbNavDrawer(fsCon),
     );
   }
 
@@ -157,6 +176,9 @@ class FileBrowserState extends State<FileBrowser> {
       var tile = ListTile(
         leading: Icon(Icons.folder),
         title: Text(p.basename(dir.path)),
+        onTap: () {
+          fsCon.setLocation(dir.path).whenComplete(flagUpdate);
+        },
       );
 
       list.add(LongPressDraggable(

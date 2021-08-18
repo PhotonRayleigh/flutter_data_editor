@@ -28,7 +28,9 @@ class Home extends StatelessWidget {
                   print("Temp: ${Directory.systemTemp.path}");
                   print("Current: ${Directory.current.path}");
                   var val = await getApplicationDocumentsDirectory();
+                  var val2 = await getApplicationSupportDirectory();
                   print("Docs: ${val.path}");
+                  print("Support: ${val.path}");
                 },
                 child: Text("Print FS locs"))
           ],

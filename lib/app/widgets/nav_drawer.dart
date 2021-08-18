@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 import 'package:get/get.dart';
-import 'package:data_editor/app/screens/file_browser.dart';
+import 'package:data_editor/app/screens/file_browser/file_browser.dart';
 
 class NavDrawer extends StatefulWidget {
   @override

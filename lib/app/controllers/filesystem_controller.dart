@@ -28,6 +28,10 @@ class FsController extends GetxController {
   Queue<String> forwardHistory = Queue<String>();
   int historyLength = 50;
 
+  Function fileBrowserRefresh;
+
+  FsController({required this.fileBrowserRefresh});
+
   @override
   void onInit() async {
     super.onInit();
@@ -44,11 +48,20 @@ class FsController extends GetxController {
     else if (Platform.isWindows)
       temp = env['UserProfile'];
     else if (Platform.isAndroid) {
-      // Storage on Android is funky.
-      // Most directories you can't access.
       /*
-        Here's some important ones:
+        IMPORTANT: Android will not show what files are in the filesystem
+        without the filesystem permission, which has to be explicitly granted.
+        I'll have to figure that out...
 
+        Storage on Android is funky.
+        There are a bunch of directories you can't access because the environment
+        is sandboxed. In general, each app can only access files located in
+        the main system storage (/storage/emulated/0), attached storage devices
+        (i.e. sd cards), and your app's system-provided storage 
+        (/data/user/0/{your org name}/{your app's name}). You can read some select other
+        directories, like system and mnt. 
+
+        Here's some important ones:
         Locked directories:
           /storage
           /data
@@ -63,7 +76,17 @@ class FsController extends GetxController {
           /user/0/com.example.data_editor -- Temp directory for this app
 
         But where is my dedicated storage for this app specifically?
+
+        getApplicationDocumentsDirectory() and getApplicationSupportDirectory();
+        both point to the same location on Android and Windows.
+        /data/user/0/com.example.data_editor/app_flutter for Android,
+        and Documents for Windows.
+
+        On Android, Directory.systemTemp points to the same directory as well.
+        On Windows, it points to the AppData\local\temp directory.
        */
+      // Will use this as the standard to get the home directory on Android.
+      // However, I will need to add quick access to the standard Android dirs.
       var docDir = await getApplicationDocumentsDirectory();
       temp = docDir.path;
     }
