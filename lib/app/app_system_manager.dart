@@ -84,8 +84,8 @@ class _AppSystemManagerState extends State<AppSystemManager>
   void didChangeMetrics() {
     super.didChangeMetrics();
 
-    print(
-        'rotated'); // This actually gets called every time the view is resized.
+    // print('rotated');
+    // This actually gets called every time the view is resized.
     // There are other ways to handle screen size changes, which may be better suited
     // than using this callback.
   }

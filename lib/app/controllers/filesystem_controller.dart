@@ -1,13 +1,18 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'dart:collection';
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
+import 'package:tuple/tuple.dart';
+
+typedef SubDir = Tuple3<List<FsListObject<Directory>>, List<FsListObject<File>>,
+    List<FsListObject<Link>>>;
 
 class FsController extends GetxController {
   late Future init;
   String home = "";
+  GlobalKey? scaffoldKey;
 
   var _currentPath = "";
   set currentPath(String val) {
@@ -20,9 +25,13 @@ class FsController extends GetxController {
   late Directory _currentDir;
   Directory get currentDir => _currentDir;
 
-  var dirs = <Directory>[];
-  var files = <File>[];
-  var links = <Link>[];
+  var dirs = <FsListObject<Directory>>[];
+  var files = <FsListObject<File>>[];
+  var links = <FsListObject<Link>>[];
+  var expandedDirs = <
+      String,
+      Tuple3<List<FsListObject<Directory>>, List<FsListObject<File>>,
+          List<FsListObject<Link>>>>{};
 
   Queue<String> backHistory = Queue<String>();
   Queue<String> forwardHistory = Queue<String>();
@@ -30,7 +39,7 @@ class FsController extends GetxController {
 
   Function fileBrowserRefresh;
 
-  FsController({required this.fileBrowserRefresh});
+  FsController({this.scaffoldKey, required this.fileBrowserRefresh});
 
   @override
   void onInit() async {
@@ -95,39 +104,150 @@ class FsController extends GetxController {
     completer.complete();
   }
 
-  Future<ScanStatus> scanDir({String? path}) async {
+  Future<ScanStatus> scanDir(
+      {String? path, bool clear = true, String? subDirPath}) async {
     await init;
-    dirs = <Directory>[];
-    files = <File>[];
-    links = <Link>[];
+
+    // Working lists
+    List<FsListObject<Directory>> workingDirs;
+    List<FsListObject<File>> workingFiles;
+    List<FsListObject<Link>> workingLinks;
+
+    if (subDirPath != null) {
+      workingDirs = expandedDirs[subDirPath]!.item1;
+      workingFiles = expandedDirs[subDirPath]!.item2;
+      workingLinks = expandedDirs[subDirPath]!.item3;
+    } else {
+      workingDirs = dirs;
+      workingFiles = files;
+      workingLinks = links;
+    }
+
+    if (clear) {
+      workingDirs.clear();
+      workingFiles.clear();
+      workingLinks.clear();
+    }
 
     // uses existing currentPath by default, but can be overriden for
     // no good reason.
     if (path != null) {
       currentPath = path;
     }
-    bool exists = false;
-    try {
-      exists = await currentDir.exists();
-    } catch (e) {
-      print("Error, caught exception checking currentDir.");
-      print(e.toString());
+
+    Directory workingDir;
+    if (subDirPath != null) {
+      workingDir = Directory(subDirPath);
+    } else {
+      workingDir = currentDir;
     }
-    if (!exists) {
-      print("Err: directory does not exist");
-      return ScanStatus.dirNoExist;
-    }
+
+    // Test if directory exists first
     try {
-      await for (var entity
-          in currentDir.list(recursive: false, followLinks: false)) {
-        if (entity is Directory)
-          dirs.add(entity);
-        else if (entity is File)
-          files.add(entity);
-        else if (entity is Link) links.add(entity);
+      if (!(await workingDir.exists())) {
+        printSnackBar(SnackBar(content: Text("Invalid path: Does not exist.")));
+        print("Invalid path: Does not exist.");
+        return ScanStatus.dirNoExist;
       }
     } catch (e) {
-      // TODO: add handler for access viloations and such
+      printSnackBar(
+        SnackBar(
+          content: Text("Error: caught exception checking currentDir."),
+          action: SnackBarAction(
+              label: "show",
+              onPressed: () {
+                Get.defaultDialog(
+                    title: "Exception Text", middleText: e.toString());
+              }),
+        ),
+      );
+      print("Error: caught exception checking currentDir.");
+      print(e.toString());
+    }
+
+    // Get/update list of filesystem entities
+    try {
+      // If clear is set, we just rebuild the lists from scratch.
+      // No state checks necessary.
+      if (clear) {
+        await for (var entity
+            in workingDir.list(recursive: false, followLinks: false)) {
+          if (entity is Directory)
+            workingDirs.add(FsListObject(entity));
+          else if (entity is File)
+            workingFiles.add(FsListObject(entity));
+          else if (entity is Link) workingLinks.add(FsListObject(entity));
+        }
+      } else {
+        // Get new list for directory.
+        var directoryList = await workingDir
+            .list(recursive: false, followLinks: false)
+            .toList();
+
+        // Every file that we already have, don't touch.
+        // If a file is missing, remove it.
+        // If a file is listed that we don't have, add it.
+
+        // Add new and check for cached first
+        for (var entity in directoryList) {
+          if (entity is Directory) {
+            if (workingDirs
+                .any((element) => element.entity.path == entity.path)) {
+              // skip
+            } else
+              workingDirs.add(FsListObject(entity));
+          } else if (entity is File) {
+            if (workingFiles
+                .any((element) => element.entity.path == entity.path)) {
+              // skip
+            } else
+              workingFiles.add(FsListObject(entity));
+          } else if (entity is Link) {
+            if (workingLinks
+                .any((element) => element.entity.path == entity.path)) {
+              // skip
+            } else
+              workingLinks.add(FsListObject(entity));
+          }
+        }
+
+        // Second, remove missing
+        for (var dir in workingDirs) {
+          if (directoryList.any((element) => element.path == dir.entity.path)) {
+            // Do nothing, we found it
+          } else
+            workingDirs.remove(dir);
+        }
+        for (var file in workingFiles) {
+          if (directoryList
+              .any((element) => element.path == file.entity.path)) {
+            // Do nothing, we found it
+          } else
+            workingFiles.remove(file);
+        }
+        for (var link in workingLinks) {
+          if (directoryList
+              .any((element) => element.path == link.entity.path)) {
+            // Do nothing, we found it
+          } else
+            workingLinks.remove(link);
+        }
+      }
+    } catch (e) {
+      printSnackBar(
+        SnackBar(
+          content: Text("Error reading directory: permission denied"),
+          action: SnackBarAction(
+              label: "show",
+              onPressed: () {
+                Get.defaultDialog(
+                    title: "Exception Text", middleText: e.toString());
+              }),
+        ),
+      );
+      print("Error reading directory: permission denied");
+      print("Exception text: ${e.toString()}");
+      return ScanStatus.permissionDenied;
     }
 
     return ScanStatus.success;
@@ -141,6 +261,7 @@ class FsController extends GetxController {
     if (backHistory.length > historyLength) backHistory.removeFirst();
     currentPath = path;
     forwardHistory.clear();
+    expandedDirs.clear();
     await scanDir();
   }
 
@@ -151,6 +272,7 @@ class FsController extends GetxController {
     if (backHistory.length > historyLength) backHistory.removeFirst();
     currentPath = currentDir.parent.path;
     forwardHistory.clear();
+    expandedDirs.clear();
     await scanDir();
   }
 
@@ -158,6 +280,7 @@ class FsController extends GetxController {
     if (backHistory.length <= 0) return;
     forwardHistory.addLast(currentPath);
     currentPath = backHistory.removeLast();
+    expandedDirs.clear();
     await scanDir();
   }
 
@@ -165,8 +288,26 @@ class FsController extends GetxController {
     if (forwardHistory.length <= 0) return;
     backHistory.addLast(currentPath);
     currentPath = forwardHistory.removeLast();
+    expandedDirs.clear();
     await scanDir();
+  }
+
+  void printSnackBar(SnackBar content) {
+    if (scaffoldKey != null) {
+      ScaffoldMessenger.of(scaffoldKey!.currentContext!).showSnackBar(content);
+    } else {
+      print(
+          "Info: scaffoldKey not set in FsContoller and printSnackBar was called.");
+    }
   }
 }
 
-enum ScanStatus { success, dirNoExist }
+enum ScanStatus { success, dirNoExist, permissionDenied }
+
+class FsListObject<T> {
+  T entity;
+  bool expanded = false;
+  bool selected = false;
+
+  FsListObject(this.entity);
+}
