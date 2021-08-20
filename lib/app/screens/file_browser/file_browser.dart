@@ -9,17 +9,25 @@ import 'fb_nav_drawer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:ui';
 
-// Leaving off on 8/18/2021:
-// I need to figure out how to handle the state of items in the list.
-// Mainly, how do I track which items are expanded and which are selected?
-// How do I have a user make an item selected or expanded?
-
 //TODOs:
 // - Make file system watching sane and not crash
 // - Allow for navigating between directories - DONE
-// - Allow folding of scanned directories
+// - Allow folding of scanned directories - DONE
 // - URL bar - DONE
 // - Quick Access - DONE, just need to finish making dir lists
+
+/* 
+    8/20/2021
+    Got tree-folding working. Basic navigation is complete, but a little
+    janky and disorganized. Has lots of room for improvement.
+    The main issue though is that it hangs the UI when a large directory
+    is loaded.
+
+    How to solve this?
+    Load directory on FsController and incrementally build as the view moves?
+    Better async/await use? Do I need to use callbacks more aggressively?
+    It is probably blocking on an await somewhere, but how would I fix that?
+*/
 
 class FileBrowser extends StatefulWidget {
   @override
