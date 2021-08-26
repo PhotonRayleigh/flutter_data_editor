@@ -8,25 +8,42 @@ import 'package:data_editor/app/controllers/filesystem_controller.dart';
 import 'fb_nav_drawer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:ui';
+import 'package:get_storage/get_storage.dart';
 
 //TODOs:
 // - Make file system watching sane and not crash
-// - Allow for navigating between directories - DONE
-// - Allow folding of scanned directories - DONE
-// - URL bar - DONE
-// - Quick Access - DONE, just need to finish making dir lists
+// - Implement popup menu buttons - DONE
+// - Fix UI layout overflows - DONE
+// - Implement displaying FileStat information
+// - Implement application settings saving
+// - Saved favorite directories
+// - Prevent UI hanging when loading new directories
+//    - Queue load of files
+//    - Use a callback to tell the UI to update after its done
+//    - Potentially delegate the work to an isolate
 
 /* 
-    8/20/2021
-    Got tree-folding working. Basic navigation is complete, but a little
-    janky and disorganized. Has lots of room for improvement.
-    The main issue though is that it hangs the UI when a large directory
-    is loaded.
+    8/25/2021
+    I have pop over menus, so now I need to hook up some operations to them.
+    I want to make saving favorites a thing.
+    I also want to be able to display filestat information.
 
-    How to solve this?
-    Load directory on FsController and incrementally build as the view moves?
-    Better async/await use? Do I need to use callbacks more aggressively?
-    It is probably blocking on an await somewhere, but how would I fix that?
+    Beyond that, all I have left to do is improve the UI and add file operations.
+    There is a lot of room for polish, but I want to just get it working at a
+    basic levels.
+
+    Very soon I want to move onto actual data editing. This will require using
+    both the file browser and a new UI together. The user needs to be able
+    to summon the file browser to pick or create a file, which will then
+    be displayed on a separate page in an editable table.
+
+    -- update 1:
+    So, for laying out the UI, if you have something that is naturally unbounded,
+    FittedBox is a life saver. It automatically sizes itself based on its contents,
+    parent, and a fit mode you specify. It fixed all my UI sizing issues
+    on Android and Windows.
+    Padding is another simple but good Widget, just to give some margin to 
+    something.
 */
 
 class FileBrowser extends StatefulWidget {
@@ -79,7 +96,7 @@ class FileBrowserState extends State<FileBrowser> {
     if (await Permission.storage.request().isGranted) {
       print("Storage permission granted");
     } else {
-      print("Storage permission NOT granted");
+      print("Storage permission denied");
     }
   }
 
@@ -92,10 +109,18 @@ class FileBrowserState extends State<FileBrowser> {
   }
 
   void flagUpdate() async {
-    buildFileList().then((value) => setState(() {
-          fileList = value;
-          textControl.text = fsCon.currentPath;
-        }));
+    // var watch = Stopwatch();
+    // watch.start();
+
+    buildFileList().then((value) {
+      setState(() {
+        fileList = value;
+        textControl.text = fsCon.currentPath;
+
+        // watch.stop();
+        // print("flagUpdate total: ${watch.elapsedMicroseconds}");
+      });
+    });
   }
 
   @override
@@ -107,7 +132,40 @@ class FileBrowserState extends State<FileBrowser> {
     // BUG: Flutter treats right-shift like Caps lock
     // Bug is known and documented here: https://github.com/flutter/flutter/issues/75675
     // Will employ temporary fix as advised
+    void Function(String) urlSubmitted = (val) async {
+      var checkDir = Directory(val);
+      try {
+        var exists = await checkDir.exists();
+
+        if (exists == false) {
+          printSnackBar(SnackBar(
+            content: Text("Invalid path: Does not exist"),
+          ));
+          textControl.printError(info: "Invalid path: Does not exist.");
+        } else {
+          fsCon.setLocation(val).whenComplete(() => flagUpdate());
+        }
+      } catch (e) {
+        printSnackBar(SnackBar(
+          content: Text("Error, caught exception checking currentDir."),
+          action: SnackBarAction(
+              label: "show",
+              onPressed: () {
+                Get.defaultDialog(
+                    title: "Exception Text", middleText: e.toString());
+              }),
+        ));
+        textControl.printError(
+            info: "Error, caught exception checking currentDir.");
+        print("Exception message: ${e.toString()}");
+      }
+    };
+
     urlBar = TextField(
+      controller: textControl,
+      maxLines: 1,
+      keyboardType: TextInputType.url,
+      onSubmitted: urlSubmitted,
       decoration: InputDecoration(
           border: UnderlineInputBorder(),
           hintMaxLines: 1,
@@ -118,65 +176,39 @@ class FileBrowserState extends State<FileBrowser> {
                 textControl.text = fsCon.currentPath;
               },
               icon: Icon(Icons.cancel))),
-      controller: textControl,
-      maxLines: 1,
-      keyboardType: TextInputType.url,
-      onSubmitted: (val) async {
-        var checkDir = Directory(val);
-        try {
-          var exists = await checkDir.exists();
+    );
 
-          if (exists == false) {
-            printSnackBar(SnackBar(
-              content: Text("Invalid path: Does not exist"),
-            ));
-            textControl.printError(info: "Invalid path: Does not exist.");
-          } else {
-            fsCon.setLocation(val).whenComplete(() => flagUpdate());
-          }
-        } catch (e) {
-          // TODO: Let user access exception message by clicking on snack bar
-          printSnackBar(SnackBar(
-            content: Text("Error, caught exception checking currentDir."),
-            action: SnackBarAction(
-                label: "show",
-                onPressed: () {
-                  Get.defaultDialog(
-                      title: "Exception Text", middleText: e.toString());
-                }),
-          ));
-          textControl.printError(
-              info: "Error, caught exception checking currentDir.");
-          print("Exception message: ${e.toString()}");
-        }
-      },
+    var appBar = AppBar(
+      title: Text("File Browser"),
+      actions: [
+        buildBackButton(),
+        buildForwardButton(),
+        buildUpButton(),
+        IconButton(
+          icon: Icon(Icons.refresh),
+          onPressed: refreshDir,
+        ),
+      ],
+    );
+
+    var body = Column(
+      children: [
+        Padding(
+            padding: EdgeInsets.only(left: 10, right: 10),
+            child: Form(child: urlBar)),
+        Expanded(
+          child: ListView(
+            children: fileList,
+          ),
+        ),
+      ],
     );
 
     return Scaffold(
       key: fsKey,
-      appBar: AppBar(
-        title: Text("File Browser"),
-        actions: [
-          buildBackButton(),
-          buildForwardButton(),
-          buildUpButton(),
-          IconButton(
-            onPressed: refreshDir,
-            icon: Icon(Icons.refresh),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Form(child: urlBar),
-          Expanded(
-            child: ListView(
-              children: fileList,
-            ),
-          ),
-        ],
-      ),
-      drawer: fbNavDrawer(fsCon),
+      appBar: appBar,
+      drawer: FbNavDrawer(fsCon),
+      body: body,
     );
   }
 
@@ -214,7 +246,34 @@ class FileBrowserState extends State<FileBrowser> {
   // Selected
   // Expanded
   Future<List<Widget>> buildFileList({String? subPath}) async {
+    // var watch = Stopwatch();
+    // var watchList = <Stopwatch>[];
+    // watch.start();
+
+    // Initialize working variables based on context
+    var list = <Widget>[];
+
+    List<FsListObject<Directory>> workingDirs;
+    List<FsListObject<File>> workingFiles;
+    List<FsListObject<Link>> workingLinks;
+
+    if (subPath != null) {
+      workingDirs = fsCon.expandedDirs[subPath]!.item1;
+      workingFiles = fsCon.expandedDirs[subPath]!.item2;
+      workingLinks = fsCon.expandedDirs[subPath]!.item3;
+    } else {
+      workingDirs = fsCon.dirs;
+      workingFiles = fsCon.files;
+      workingLinks = fsCon.links;
+    }
+
+    // Breaking the tile construction logic into a separate function
+    // is required for proper recursion. Also my sanity.
     Widget buildTile(FsListObject<FileSystemEntity> item) {
+      // var subWatch = Stopwatch();
+      // watchList.add(subWatch);
+      // subWatch.start();
+
       Widget leadChild;
       if (item is FsListObject<Directory> || item is FsListObject<Link>) {
         Widget chevron;
@@ -268,88 +327,124 @@ class FileBrowserState extends State<FileBrowser> {
           ],
         );
       } else {
-        leadChild = Icon(Icons.file_present);
+        leadChild = Padding(
+            padding: EdgeInsets.only(left: 10),
+            child: Icon(Icons.file_present));
       }
 
-      var lead = Container(
-        width: 65,
-        height: 30,
+      var lead = FittedBox(
+        fit: BoxFit.cover,
         child: leadChild,
       );
 
-      void Function()? tapAction;
-      if (item is FsListObject<Directory>) {
-        tapAction = () {
+      void Function()? doubleTap;
+      void Function()? singleTap = () {
+        Future.microtask(() => fsCon.setSelectionAll(false)).whenComplete(() {
+          item.selected = true;
+          fsCon.setFocusedItem(item);
+          flagUpdate();
+        });
+      };
+      if (item is FsListObject<Directory> && item.focus) {
+        doubleTap = () {
           fsCon.setLocation(item.entity.path).whenComplete(flagUpdate);
         };
+        // onTap = () {};
       } else if (item is FsListObject<File>) {
-        tapAction = null;
-      } else {
-        tapAction = () async {
+        doubleTap = null;
+        // onTap = null;
+      } else if (item is FsListObject<Link> && item.focus) {
+        doubleTap = () async {
           fsCon
-              .setLocation(await (item as FsListObject<Link>)
-                  .entity
-                  .resolveSymbolicLinks())
+              .setLocation(await item.entity.resolveSymbolicLinks())
               .whenComplete(flagUpdate);
         };
+        // onTap = () {};
       }
 
-      var tile = ListTile(
-        leading: lead,
-        title: Text(p.basename(item.entity.path)),
-        onTap: tapAction,
-        selected: item.selected,
-        trailing: Container(
-            width: 40,
-            height: 40,
-            child: Row(
-              children: [
-                if (!item.selected)
-                  IconButton(
-                    icon: Icon(Icons.circle_outlined),
-                    onPressed: () {
-                      item.selected = true;
-                      flagUpdate();
-                    },
-                  ),
-                if (item.selected)
-                  IconButton(
-                    icon: Icon(Icons.check_circle_outline, color: Colors.red),
-                    onPressed: () {
-                      item.selected = false;
-                      flagUpdate();
-                    },
-                  ),
-              ],
-            )),
+      var listTileTrailing = FittedBox(
+          fit: BoxFit.cover,
+          child: Row(
+            children: [
+              if (!item.selected)
+                IconButton(
+                  icon: Icon(Icons.circle_outlined),
+                  onPressed: () {
+                    item.selected = true;
+                    flagUpdate();
+                  },
+                ),
+              if (item.selected)
+                IconButton(
+                  icon: Icon(Icons.check_circle_outline, color: Colors.red),
+                  onPressed: () {
+                    item.selected = false;
+                    flagUpdate();
+                  },
+                ),
+              PopupMenuButton(
+                itemBuilder: (context) {
+                  return <PopupMenuEntry>[
+                    PopupMenuItem(
+                      child: Text("test"),
+                      value: "Test",
+                    ),
+                  ];
+                },
+                icon: Icon(Icons.more_vert),
+                onSelected: (item) {
+                  print("Item selected: ${item.toString()}");
+                },
+              ),
+            ],
+          ));
+
+      // WARNING! Adding a GestureDetector to the ListTile seems to cause
+      // misbehavior, and makes Flutter's input handling stutter.
+      // My guess is this is a specific conflict between how the ListTile handles
+      // input and the GestureDetector.
+      // Just overlaying a GestureDetectir did not work before.
+      // var title = ListTile(
+      //   leading: lead,
+      //   title: Text(p.basename(item.entity.path)),
+      //   // title: GestureDetector(
+      //   //     onDoubleTap: tapAction,
+      //   //     child: Text(p.basename(item.entity.path)),
+      //   //     onTap: onTap),
+      //   onTap: onTap,
+      //   selected: item.selected,
+      //   trailing: listTileTrailing,
+      // );
+
+      var title = GestureDetector(
+        child: ListTile(
+          leading: lead,
+          title: Text(p.basename(item.entity.path)),
+          // title: GestureDetector(
+          //     onDoubleTap: tapAction,
+          //     child: Text(p.basename(item.entity.path)),
+          //     onTap: onTap),
+          selected: item.selected,
+          trailing: listTileTrailing,
+        ),
+        onTap: singleTap,
+        onDoubleTap: doubleTap,
       );
 
+      // subWatch.stop();
+
       return LongPressDraggable(
-        child: tile,
+        child: title,
         feedback: LimitedBox(
           child: Card(
-            child: tile,
+            child: title,
           ),
           maxWidth: (window.physicalSize / window.devicePixelRatio).width - 40,
           maxHeight: 100,
         ),
       );
-    }
 
-    var list = <Widget>[];
-
-    List<FsListObject<Directory>> workingDirs;
-    List<FsListObject<File>> workingFiles;
-    List<FsListObject<Link>> workingLinks;
-
-    if (subPath != null) {
-      workingDirs = fsCon.expandedDirs[subPath]!.item1;
-      workingFiles = fsCon.expandedDirs[subPath]!.item2;
-      workingLinks = fsCon.expandedDirs[subPath]!.item3;
-    } else {
-      workingDirs = fsCon.dirs;
-      workingFiles = fsCon.files;
-      workingLinks = fsCon.links;
+      // END BUILD TILE
     }
 
     for (var dir in workingDirs) {
@@ -387,6 +482,15 @@ class FileBrowserState extends State<FileBrowser> {
       }
     }
 
+    // watch.stop();
+    // double averageTime;
+    // int totalTime = 0;
+    // for (var w in watchList) {
+    //   totalTime += w.elapsedMicroseconds;
+    // }
+    // averageTime = totalTime / watchList.length;
+    // print("buildTile times: $totalTime total, $averageTime average");
+    // print("buildFileList elapsed time: ${watch.elapsedMicroseconds}");
     return list;
   }
 

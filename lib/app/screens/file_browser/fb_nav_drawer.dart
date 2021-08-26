@@ -5,53 +5,98 @@ import 'package:data_editor/app/controllers/filesystem_controller.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 
-class fbNavDrawer extends StatelessWidget {
-  fbNavDrawer(this.controller, {Key? key}) : super(key: key) {
+class FbNavDrawer extends StatefulWidget {
+  FbNavDrawer(this.controller, {Key? key}) : super(key: key);
+
+  final FsController controller;
+
+  @override
+  State<StatefulWidget> createState() {
+    return FbNavDrawerState(controller);
+  }
+}
+
+class FbNavDrawerState extends State<FbNavDrawer> {
+  FbNavDrawerState(this.controller);
+
+  @override
+  void initState() {
+    super.initState();
     createNavList();
   }
 
   final FsController controller;
-  late final List<Widget> listTiles;
+  List<Widget> listTiles = [];
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    return Drawer(
+    var drawerHeader = DrawerHeader(
+      child: Column(
+        children: [
+          Align(
+            child: Row(children: [
+              IconButton(
+                  icon: Icon(Icons.arrow_back),
+                  onPressed: () {
+                    Get.back();
+                    Get.back();
+                  }),
+              Text("Return to home"),
+            ]),
+            alignment: Alignment.topLeft,
+          ),
+          Expanded(
+              child: Align(
+            child: Text(
+              "Quick Access",
+              style: TextStyle(fontSize: 24),
+            ),
+            alignment: Alignment.bottomLeft,
+          )),
+        ],
+      ),
+    );
+
+    var drawerBody = Expanded(
       child: ListView(
         children: [
-          DrawerHeader(
-            child: Column(
-              children: [
-                Align(
-                  child: Row(children: [
-                    IconButton(
-                        icon: Icon(Icons.arrow_back),
-                        onPressed: () {
-                          Get.back();
-                          Get.back();
-                        }),
-                    Text("Return to home"),
-                  ]),
-                  alignment: Alignment.topLeft,
-                ),
-                Expanded(
-                    child: Align(
-                  child: Text(
-                    "Quick Access",
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  alignment: Alignment.bottomLeft,
-                )),
-              ],
-            ),
-          ),
           for (var tile in listTiles) tile,
+        ],
+      ),
+    );
+
+    var drawerHelp = ListTile(
+      leading: Icon(Icons.help),
+      title: Text("Help"),
+      onTap: () {
+        Get.defaultDialog(
+            title: "Usage Instructions",
+            content: Text(
+              "- Double tap a folder or link to follow it.\n" +
+                  "- Press the cheveron to reveal a folder's contents in-line.\n" +
+                  "- Type an address into the address bar and press enter to go to it.\n" +
+                  "- Use navigation buttons in top right to go back, forward, or up a directory\n",
+              textAlign: TextAlign.start,
+            ),
+            confirm: TextButton(
+              child: Text("Ok"),
+              onPressed: Get.back,
+            ));
+      },
+    );
+
+    return Drawer(
+      child: Column(
+        children: [
+          drawerHeader,
+          drawerBody,
+          drawerHelp,
         ],
       ),
     );
   }
 
-  void createNavList() {
+  void createNavList() async {
     if (kIsWeb) {
       listTiles = [
         ListTile(
@@ -61,48 +106,31 @@ class fbNavDrawer extends StatelessWidget {
       return;
     }
 
-    var env = Platform.environment;
+    await controller.init;
+
     var pathList = <String>[];
 
     if (Platform.isWindows) {
-      var home = "";
-      if (env['SYSTEMDRIVE'] != null)
-        pathList.add(env['SYSTEMDRIVE']! + p.separator);
-      if (env['USERPROFILE'] != null) {
-        home = env['USERPROFILE']!;
-        pathList.add(home);
-        pathList.add(p.join(home, "documents"));
-        pathList.add(p.join(home, "pictures"));
-        pathList.add(p.join(home, "desktop"));
-      }
-    } else if (Platform.isMacOS) {
-      listTiles = [
-        ListTile(
-          title: Text("Mac"),
-        )
-      ];
-      return;
-    } else if (Platform.isLinux) {
-      listTiles = [
-        ListTile(
-          title: Text("Linux"),
-        )
-      ];
-      return;
-    } else if (Platform.isAndroid) {
+      pathList.add(controller.systemRoot);
+      pathList.add(controller.systemPaths[0]);
+      pathList.add(controller.systemPaths[1]);
       pathList.add(controller.home);
-      pathList.add(p.join(p.separator, "storage", "emulated", "0"));
-      pathList.add(p.join(p.separator,
-          "sdcard")); // I think this just points to internal storage
-      pathList.add(p.join(p.separator, "mnt"));
-      pathList.add(p.join(p.separator, "system"));
+      pathList.addAll(
+          controller.systemPaths.sublist(2, controller.systemPaths.length));
+      pathList.addAll(controller.favPaths);
+    } else if (Platform.isMacOS || Platform.isLinux) {
+      pathList.add(controller.systemRoot);
+      pathList.add(controller.home);
+      pathList.addAll(controller.systemPaths);
+      pathList.addAll(controller.favPaths);
+    } else if (Platform.isAndroid) {
+      pathList.add(controller.systemRoot);
+      pathList.addAll(controller.systemPaths);
+      pathList.addAll(controller.favPaths);
     } else if (Platform.isIOS) {
-      listTiles = [
-        ListTile(
-          title: Text("iOS"),
-        )
-      ];
-      return;
+      pathList.add(controller.home);
+      pathList.addAll(controller.systemPaths);
+      pathList.addAll(controller.favPaths);
     } else {
       listTiles = [
         ListTile(
@@ -122,6 +150,7 @@ class fbNavDrawer extends StatelessWidget {
               Get.back();
             }),
     ];
+    setState(() {});
     return;
   }
 }
