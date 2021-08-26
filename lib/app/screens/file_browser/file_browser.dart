@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
@@ -273,63 +274,74 @@ class FileBrowserState extends State<FileBrowser> {
       // var subWatch = Stopwatch();
       // watchList.add(subWatch);
       // subWatch.start();
+      entityType key;
+      if (item is FsListObject<Directory>)
+        key = entityType.directory;
+      else if (item is FsListObject<File>)
+        key = entityType.file;
+      else
+        key = entityType.link;
 
       Widget leadChild;
-      if (item is FsListObject<Directory> || item is FsListObject<Link>) {
-        Widget chevron;
-        if (item.expanded) {
-          chevron = RotatedBox(
-            child: Icon(Icons.chevron_right),
-            quarterTurns: 1,
+      switch (key) {
+        case entityType.directory:
+        case entityType.link:
+          Widget chevron;
+          if (item.expanded) {
+            chevron = RotatedBox(
+              child: Icon(Icons.chevron_right),
+              quarterTurns: 1,
+            );
+          } else
+            chevron = Icon(Icons.chevron_right);
+
+          void Function() chevronTap;
+          if (item is FsListObject<Directory>) {
+            var path = item.entity.path;
+            chevronTap = () {
+              if (item.expanded) {
+                item.expanded = false;
+                fsCon.expandedDirs.remove(path);
+                flagUpdate();
+              } else {
+                item.expanded = true;
+                fsCon.expandedDirs[path] = SubDir(<FsListObject<Directory>>[],
+                    <FsListObject<File>>[], <FsListObject<Link>>[]);
+                fsCon.scanDir(subDirPath: path).whenComplete(flagUpdate);
+              }
+            };
+          } else {
+            chevronTap = () async {
+              var path = await (item.entity as Link).resolveSymbolicLinks();
+              if (item.expanded) {
+                item.expanded = false;
+                fsCon.expandedDirs.remove(path);
+                flagUpdate();
+              } else {
+                item.expanded = true;
+                fsCon.expandedDirs[path] = SubDir(<FsListObject<Directory>>[],
+                    <FsListObject<File>>[], <FsListObject<Link>>[]);
+                fsCon.scanDir(subDirPath: path).whenComplete(flagUpdate);
+              }
+            };
+          }
+
+          leadChild = Row(
+            children: [
+              IconButton(
+                icon: chevron,
+                onPressed: chevronTap,
+              ),
+              if (key == entityType.directory) Icon(Icons.folder),
+              if (key == entityType.link) Icon(Icons.link),
+            ],
           );
-        } else
-          chevron = Icon(Icons.chevron_right);
-
-        void Function() chevronTap;
-        if (item is FsListObject<Directory>) {
-          var path = item.entity.path;
-          chevronTap = () {
-            if (item.expanded) {
-              item.expanded = false;
-              fsCon.expandedDirs.remove(path);
-              flagUpdate();
-            } else {
-              item.expanded = true;
-              fsCon.expandedDirs[path] = SubDir(<FsListObject<Directory>>[],
-                  <FsListObject<File>>[], <FsListObject<Link>>[]);
-              fsCon.scanDir(subDirPath: path).whenComplete(flagUpdate);
-            }
-          };
-        } else {
-          chevronTap = () async {
-            var path = await (item.entity as Link).resolveSymbolicLinks();
-            if (item.expanded) {
-              item.expanded = false;
-              fsCon.expandedDirs.remove(path);
-              flagUpdate();
-            } else {
-              item.expanded = true;
-              fsCon.expandedDirs[path] = SubDir(<FsListObject<Directory>>[],
-                  <FsListObject<File>>[], <FsListObject<Link>>[]);
-              fsCon.scanDir(subDirPath: path).whenComplete(flagUpdate);
-            }
-          };
-        }
-
-        leadChild = Row(
-          children: [
-            IconButton(
-              icon: chevron,
-              onPressed: chevronTap,
-            ),
-            if (item is FsListObject<Directory>) Icon(Icons.folder),
-            if (item is FsListObject<Link>) Icon(Icons.link),
-          ],
-        );
-      } else {
-        leadChild = Padding(
-            padding: EdgeInsets.only(left: 10),
-            child: Icon(Icons.file_present));
+          break;
+        default:
+          leadChild = Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: Icon(Icons.file_present));
+          break;
       }
 
       var lead = FittedBox(
@@ -337,29 +349,69 @@ class FileBrowserState extends State<FileBrowser> {
         child: leadChild,
       );
 
-      void Function()? doubleTap;
-      void Function()? singleTap = () {
-        Future.microtask(() => fsCon.setSelectionAll(false)).whenComplete(() {
-          item.selected = true;
-          fsCon.setFocusedItem(item);
-          flagUpdate();
-        });
-      };
-      if (item is FsListObject<Directory> && item.focus) {
-        doubleTap = () {
-          fsCon.setLocation(item.entity.path).whenComplete(flagUpdate);
-        };
-        // onTap = () {};
-      } else if (item is FsListObject<File>) {
-        doubleTap = null;
-        // onTap = null;
-      } else if (item is FsListObject<Link> && item.focus) {
-        doubleTap = () async {
-          fsCon
-              .setLocation(await item.entity.resolveSymbolicLinks())
-              .whenComplete(flagUpdate);
-        };
-        // onTap = () {};
+      // void Function()? doubleTap;
+
+      void Function()? followPath;
+      void Function()? singleTap;
+
+      switch (key) {
+        case entityType.file:
+          singleTap = () {
+            Future.microtask(() => fsCon.setSelectionAll(false))
+                .whenComplete(() {
+              item.selected = true;
+              fsCon.setFocusedItem(item);
+              flagUpdate();
+            });
+            return;
+          };
+          break;
+        default:
+          switch (key) {
+            case entityType.directory:
+              followPath = () {
+                fsCon.setLocation(item.entity.path).whenComplete(flagUpdate);
+              };
+              break;
+            case entityType.link:
+              followPath = () async {
+                fsCon
+                    .setLocation(await item.entity.resolveSymbolicLinks())
+                    .whenComplete(flagUpdate);
+              };
+              break;
+            default:
+          }
+
+          singleTap = () {
+            if (tapWatch.isRunning) {
+              if (tapWatch.elapsedMilliseconds < 300) {
+                // followPath will only be null for files.
+                // In which case, followPath will never be called.
+                followPath!();
+                tapWatch.stop();
+                return;
+              }
+              tapWatch.stop();
+              tapWatch.reset();
+            }
+
+            tapWatch.reset();
+            tapWatch.start();
+            watchTimer = Timer(Duration(milliseconds: 320), () {
+              tapWatch.stop();
+              tapWatch.reset();
+            });
+
+            Future.microtask(() => fsCon.setSelectionAll(false))
+                .whenComplete(() {
+              item.selected = true;
+              fsCon.setFocusedItem(item);
+              flagUpdate();
+            });
+            return;
+          };
+          break;
       }
 
       var listTileTrailing = FittedBox(
@@ -399,36 +451,19 @@ class FileBrowserState extends State<FileBrowser> {
             ],
           ));
 
-      // WARNING! Adding a GestureDetector to the ListTile seems to cause
-      // misbehavior, and makes Flutter's input handling stutter.
-      // My guess is this is a specific conflict between how the ListTile handles
-      // input and the GestureDetector.
-      // Just overlaying a GestureDetectir did not work before.
-      // var title = ListTile(
-      //   leading: lead,
-      //   title: Text(p.basename(item.entity.path)),
-      //   // title: GestureDetector(
-      //   //     onDoubleTap: tapAction,
-      //   //     child: Text(p.basename(item.entity.path)),
-      //   //     onTap: onTap),
-      //   onTap: onTap,
-      //   selected: item.selected,
-      //   trailing: listTileTrailing,
-      // );
-
+      // Using double tap with a GestureDetector in addition to onTap
+      // causes the detector to wait the double tap time before responding
+      // to a single tap event.
+      // This causes noticeable delays when selecting items.
       var title = GestureDetector(
         child: ListTile(
           leading: lead,
           title: Text(p.basename(item.entity.path)),
-          // title: GestureDetector(
-          //     onDoubleTap: tapAction,
-          //     child: Text(p.basename(item.entity.path)),
-          //     onTap: onTap),
           selected: item.selected,
           trailing: listTileTrailing,
+          onTap: singleTap,
         ),
-        onTap: singleTap,
-        onDoubleTap: doubleTap,
+        // onDoubleTap: doubleTap,
       );
 
       // subWatch.stop();
@@ -443,9 +478,8 @@ class FileBrowserState extends State<FileBrowser> {
           maxHeight: 100,
         ),
       );
-
-      // END BUILD TILE
     }
+    // ---- END BUILD TILE -----
 
     for (var dir in workingDirs) {
       list.add(buildTile(dir));
@@ -497,4 +531,9 @@ class FileBrowserState extends State<FileBrowser> {
   void printSnackBar(SnackBar content) {
     ScaffoldMessenger.of(fsKey.currentContext!).showSnackBar(content);
   }
+
+  final Stopwatch tapWatch = Stopwatch();
+  Timer? watchTimer;
 }
+
+enum entityType { directory, file, link }
