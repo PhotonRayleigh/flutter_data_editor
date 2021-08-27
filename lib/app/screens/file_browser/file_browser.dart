@@ -18,34 +18,10 @@ import 'package:get_storage/get_storage.dart';
 // - Implement displaying FileStat information
 // - Implement application settings saving
 // - Saved favorite directories
-// - Prevent UI hanging when loading new directories
+// - Prevent UI hanging when loading new directories (DONE, does not happen in release)
 //    - Queue load of files
 //    - Use a callback to tell the UI to update after its done
 //    - Potentially delegate the work to an isolate
-
-/* 
-    8/25/2021
-    I have pop over menus, so now I need to hook up some operations to them.
-    I want to make saving favorites a thing.
-    I also want to be able to display filestat information.
-
-    Beyond that, all I have left to do is improve the UI and add file operations.
-    There is a lot of room for polish, but I want to just get it working at a
-    basic levels.
-
-    Very soon I want to move onto actual data editing. This will require using
-    both the file browser and a new UI together. The user needs to be able
-    to summon the file browser to pick or create a file, which will then
-    be displayed on a separate page in an editable table.
-
-    -- update 1:
-    So, for laying out the UI, if you have something that is naturally unbounded,
-    FittedBox is a life saver. It automatically sizes itself based on its contents,
-    parent, and a fit mode you specify. It fixed all my UI sizing issues
-    on Android and Windows.
-    Padding is another simple but good Widget, just to give some margin to 
-    something.
-*/
 
 class FileBrowser extends StatefulWidget {
   @override
@@ -414,6 +390,56 @@ class FileBrowserState extends State<FileBrowser> {
           break;
       }
 
+      void Function(String)? contextMenu = (value) async {
+        switch (value) {
+          case 'fileStat':
+            FileStat.stat(item.entity.path).then((stat) {
+              var statMsg = stat.toString();
+              Future.microtask(() => print(stat.toString()));
+              Get.defaultDialog(
+                actions: [
+                  TextButton(onPressed: () => Get.back(), child: Text("Ok"))
+                ],
+                title: "FileStat",
+                content: Text(
+                  statMsg,
+                  textAlign: TextAlign.left,
+                ),
+              );
+            });
+            break;
+          case 'addFav':
+            fsCon.addFavorite(item.entity.path);
+            break;
+          case 'removeFav':
+            fsCon.removeFavorite(item.entity.path);
+            break;
+        }
+      };
+
+      var moreButton = PopupMenuButton<String>(
+        itemBuilder: (context) {
+          late PopupMenuItem<String> addFavorite;
+          if (fsCon.favPaths.contains(item.entity.path)) {
+            addFavorite = PopupMenuItem(
+                child: Text("Remove Favorite"), value: 'removeFav');
+          } else {
+            addFavorite =
+                PopupMenuItem(child: Text("Add Favorite"), value: 'addFav');
+          }
+
+          return <PopupMenuEntry<String>>[
+            PopupMenuItem(
+              child: Text("File Stat"),
+              value: "fileStat",
+            ),
+            addFavorite,
+          ];
+        },
+        icon: Icon(Icons.more_vert),
+        onSelected: contextMenu,
+      );
+
       var listTileTrailing = FittedBox(
           fit: BoxFit.cover,
           child: Row(
@@ -434,20 +460,7 @@ class FileBrowserState extends State<FileBrowser> {
                     flagUpdate();
                   },
                 ),
-              PopupMenuButton(
-                itemBuilder: (context) {
-                  return <PopupMenuEntry>[
-                    PopupMenuItem(
-                      child: Text("test"),
-                      value: "Test",
-                    ),
-                  ];
-                },
-                icon: Icon(Icons.more_vert),
-                onSelected: (item) {
-                  print("Item selected: ${item.toString()}");
-                },
-              ),
+              moreButton,
             ],
           ));
 
@@ -463,6 +476,7 @@ class FileBrowserState extends State<FileBrowser> {
           trailing: listTileTrailing,
           onTap: singleTap,
         ),
+        // TODO: Add right click support with secondaryTap.
         // onDoubleTap: doubleTap,
       );
 

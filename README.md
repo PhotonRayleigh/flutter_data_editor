@@ -1,6 +1,6 @@
 # data_editor
 
-A new Flutter project.
+This is a WIP sample data editor program written using the [Flutter Framework](https://flutter.dev/).
 
 ## Getting Started
 
@@ -14,3 +14,8 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter, view our
 [online documentation](https://flutter.dev/docs), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+## Copyright
+This repository and original code belongs to PhotonRayleigh. I do not grant permission to others to edit this repository. You may, however, make a copy of the code in this repository and use it how you see fit.
+
+Flutter and the other third party libraries/technologies used in this repository are governed by their own respective licenses. Refer to their respective documentation for details.

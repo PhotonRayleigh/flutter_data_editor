@@ -3,15 +3,18 @@ import 'package:get/get.dart';
 import 'dart:io';
 import 'dart:collection';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'package:tuple/tuple.dart';
 import 'package:path/path.dart' as p;
+import 'package:get_storage/get_storage.dart';
 
 typedef SubDir = Tuple3<List<FsListObject<Directory>>, List<FsListObject<File>>,
     List<FsListObject<Link>>>;
 
 class FsController extends GetxController {
   late Future init;
+  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   String home = "";
   String systemRoot = "";
   GlobalKey? scaffoldKey;
@@ -47,13 +50,34 @@ class FsController extends GetxController {
 
   // Quick navigation variables
   List<String> systemPaths = <String>[];
-  List<String> favPaths = <String>[];
+  Set<String> favPaths = <String>{};
   // End quick nav variables
 
   @override
   void onInit() async {
     super.onInit();
     await initDirs();
+    await _readPrefs();
+  }
+
+  @override
+  void onClose() {
+    super.onClose();
+    GetStorage().write("fsFavorites", favPaths);
+  }
+
+  Future _readPrefs() async {
+    var prefs = await _prefs;
+    if (prefs.containsKey('fsFavorites')) {
+      var savedPaths = (await _prefs).getStringList('fsFavorites');
+      favPaths = savedPaths!.toSet();
+    }
+  }
+
+  Future _savePrefs() async {
+    var prefs = await _prefs;
+
+    prefs.setStringList('fsFavorites', favPaths.toList());
   }
 
   Future initDirs() async {
@@ -440,6 +464,21 @@ class FsController extends GetxController {
       item.focus = true;
       focusItem = item;
     }
+  }
+
+  void addFavorite(String item) {
+    favPaths.add(item);
+    _savePrefs();
+  }
+
+  void removeFavorite(String item) {
+    favPaths.remove(item);
+    _savePrefs();
+  }
+
+  void clearFavorites() {
+    favPaths.clear();
+    _savePrefs();
   }
 
   // End Entry management

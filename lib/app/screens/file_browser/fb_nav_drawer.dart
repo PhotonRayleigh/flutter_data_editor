@@ -42,6 +42,31 @@ class FbNavDrawerState extends State<FbNavDrawer> {
                     Get.back();
                   }),
               Text("Return to home"),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: PopupMenuButton(
+                    icon: Icon(Icons.more_vert),
+                    itemBuilder: (_) {
+                      return <PopupMenuItem<String>>[
+                        PopupMenuItem(
+                          child: Text("Clear Favorites"),
+                          value: 'clearFavs',
+                        ),
+                      ];
+                    },
+                    onSelected: (item) {
+                      switch (item) {
+                        case 'clearFavs':
+                          Future.microtask(() => controller.clearFavorites())
+                              .whenComplete(() async => await createNavList())
+                              .whenComplete(() => setState(() {}));
+                          break;
+                      }
+                    },
+                  ),
+                ),
+              )
             ]),
             alignment: Alignment.topLeft,
           ),
@@ -96,7 +121,7 @@ class FbNavDrawerState extends State<FbNavDrawer> {
     );
   }
 
-  void createNavList() async {
+  Future createNavList() async {
     if (kIsWeb) {
       listTiles = [
         ListTile(
