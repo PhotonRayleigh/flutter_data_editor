@@ -11,7 +11,7 @@ After that, I intend to create an interface to connect to at least one type of S
 ## Dependencies
 Most of the dependencies for the project are provided by packages available on Pub.dev and are listed in the pubspec.yaml.
 
-This project does rely on one custom dependency that I wrote, which I've dubbed 'spark_lib'. This project expects spark_lib to be in its parent directory. You can find my repository for spark_lib on GitHub, [here].
+This project does rely on one custom dependency that I wrote, which I've dubbed 'spark_lib'. This project expects spark_lib to be in its parent directory. You can find my repository for spark_lib on GitHub, [here](https://github.com/PhotonRayleigh/spark_lib_flutter).
 
 ## Copyright
 This repository and original code belongs to PhotonRayleigh. Only those who I grant express permission may directly edit this repository. You may, however, make a copy of the code in this repository and use it how you see fit.
