@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'package:tuple/tuple.dart';
 import 'package:path/path.dart' as p;
-import 'package:get_storage/get_storage.dart';
 
 typedef SubDir = Tuple3<List<FsListObject<Directory>>, List<FsListObject<File>>,
     List<FsListObject<Link>>>;
@@ -63,7 +62,7 @@ class FsController extends GetxController {
   @override
   void onClose() {
     super.onClose();
-    GetStorage().write("fsFavorites", favPaths);
+    _savePrefs();
   }
 
   Future _readPrefs() async {

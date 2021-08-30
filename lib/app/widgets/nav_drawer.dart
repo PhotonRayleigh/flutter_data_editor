@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 import 'package:get/get.dart';
-import 'package:data_editor/app/screens/file_browser/file_browser.dart';
+// import 'package:data_editor/app/screens/file_browser/file_browser.dart';
+import 'package:data_editor/app/systems/global_navigation.dart';
 
 class NavDrawer extends StatefulWidget {
   @override
@@ -9,20 +10,20 @@ class NavDrawer extends StatefulWidget {
 }
 
 class _NavDrawerState extends State<NavDrawer> {
-  static final List<Tuple2<String, Widget>> _navList =
-      <Tuple2<String, Widget>>[];
-  static bool _navInitialized = false;
+  late GlobalNavigation nav;
 
-  _NavDrawerState() {
-    if (!_navInitialized) {
-      _navList.add(Tuple2<String, Widget>('File Browser', FileBrowser()));
-      _navInitialized = true;
-    }
+  _NavDrawerState();
+
+  @override
+  void initState() {
+    super.initState();
+
+    nav = Get.find<GlobalNavigation>();
   }
 
-  void _nav(int viewNumber) {
-    print('$viewNumber');
-    Get.to(() => _navList[viewNumber].item2, routeName: "File Browser");
+  void _nav(String path, Widget view) {
+    nav.currentLoc = Tuple2(path, view);
+    Get.to(() => view, routeName: path);
     // Navigator.of(context)
     //     .push(MaterialPageRoute<void>(builder: (BuildContext context) {
     //   var target = _navList[viewNumber].item2;
@@ -35,15 +36,25 @@ class _NavDrawerState extends State<NavDrawer> {
 
   List<ListTile> _buildNavTiles() {
     var navTiles = <ListTile>[];
-    int i = 0;
-    for (var item in _navList) {
-      var temp = i;
-      navTiles.add(ListTile(
-        title: Text(item.item1),
-        onTap: () => _nav(temp),
-      ));
-      i++;
-    }
+
+    nav.navList.forEach((path, item) {
+      if (path == nav.currentLoc.item1) return;
+
+      Widget? leading;
+      if (path == "/")
+        leading = Icon(Icons.home);
+      else if (path == "/dev info")
+        leading = Icon(Icons.developer_mode);
+      else if (path == "/file browser") leading = Icon(Icons.folder_open);
+
+      navTiles.add(
+        ListTile(
+          leading: leading,
+          title: Text(item.prettyName),
+          onTap: () => _nav(path, item.builder()),
+        ),
+      );
+    });
     return navTiles;
   }
 
