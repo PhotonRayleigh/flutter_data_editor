@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 import 'package:get/get.dart';
 // import 'package:data_editor/app/screens/file_browser/file_browser.dart';
-import 'package:data_editor/app/systems/global_navigation.dart';
+import 'package:data_editor/app/controllers/global_navigation.dart';
 
 class NavDrawer extends StatefulWidget {
   @override
@@ -21,9 +21,8 @@ class _NavDrawerState extends State<NavDrawer> {
     nav = Get.find<GlobalNavigation>();
   }
 
-  void _nav(String path, Widget view) {
-    nav.currentLoc = Tuple2(path, view);
-    Get.to(() => view, routeName: path);
+  void _nav(String path) {
+    Get.to(() => nav.navigate(path), routeName: path);
     // Navigator.of(context)
     //     .push(MaterialPageRoute<void>(builder: (BuildContext context) {
     //   var target = _navList[viewNumber].item2;
@@ -38,7 +37,7 @@ class _NavDrawerState extends State<NavDrawer> {
     var navTiles = <ListTile>[];
 
     nav.navList.forEach((path, item) {
-      if (path == nav.currentLoc.item1) return;
+      if (path == nav.currentPath) return;
 
       Widget? leading;
       if (path == "/")
@@ -51,7 +50,7 @@ class _NavDrawerState extends State<NavDrawer> {
         ListTile(
           leading: leading,
           title: Text(item.prettyName),
-          onTap: () => _nav(path, item.builder()),
+          onTap: () => _nav(path),
         ),
       );
     });

@@ -61,8 +61,8 @@ class FsController extends GetxController {
 
   @override
   void onClose() {
-    super.onClose();
     _savePrefs();
+    super.onClose();
   }
 
   Future _readPrefs() async {

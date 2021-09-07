@@ -6,7 +6,7 @@ import 'app_system_manager.dart';
 import 'theme/base_theme.dart';
 import 'screens/home.dart';
 import 'widgets/shift_right_fixer.dart';
-import 'systems/global_navigation.dart';
+import 'controllers/global_navigation.dart';
 import 'screens/file_browser/file_browser.dart';
 
 /* 
@@ -38,21 +38,19 @@ class App extends StatelessWidget {
   App() {
     nav = Get.put(GlobalNavigation());
 
-    nav.navList["/"] = NavItem("Home", () => Home());
-    nav.navList["/file browser"] = NavItem("File Browser", () => FileBrowser());
-    nav.navList["/dev info"] = NavItem("Developer Info", () => DevInfo());
+    nav["/"] = NavItem("Home", () => Home());
+    nav["/file browser"] = NavItem("File Browser", () => FileBrowser());
+    nav["/dev info"] = NavItem("Developer Info", () => DevInfo());
   }
 
   @override
   Widget build(BuildContext context) {
-    nav.currentLoc = Tuple2("/", Home());
-
     return ShiftRightFixer(
       child: AppSystemManager(
         child: GetMaterialApp(
           title: appTitle,
           theme: baseTheme,
-          home: nav.currentLoc.item2,
+          home: nav.navigate("/"),
         ),
       ),
     );
