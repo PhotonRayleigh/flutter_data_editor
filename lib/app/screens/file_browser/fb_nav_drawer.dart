@@ -39,8 +39,8 @@ class FbNavDrawerState extends State<FbNavDrawer> {
               IconButton(
                   icon: Icon(Icons.arrow_back),
                   onPressed: () {
-                    Get.back();
-                    Get.back();
+                    // How do I handle going back?
+                    Get.to(Get.find<GlobalNavigation>().navigate("/"));
                   }),
               Text("Return to home"),
               Expanded(
