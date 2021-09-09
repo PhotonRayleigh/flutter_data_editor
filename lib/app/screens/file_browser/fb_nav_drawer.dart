@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:data_editor/app/controllers/filesystem_controller.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
+
 import 'package:data_editor/app/controllers/global_navigation.dart';
+import 'package:data_editor/app/controllers/filesystem_controller.dart';
 
 class FbNavDrawer extends StatefulWidget {
   FbNavDrawer(this.controller, {Key? key}) : super(key: key);

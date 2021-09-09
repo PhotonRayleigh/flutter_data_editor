@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'package:data_editor/app/controllers/editor_table_controller.dart';
 import 'package:get/get.dart';
+
+import 'package:data_editor/app/controllers/editor_table_controller.dart';
 
 class DataEditorTable extends StatefulWidget {
   @override

@@ -1,12 +1,13 @@
-import 'package:data_editor/app/screens/dev_info.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tuple/tuple.dart';
-import 'app_system_manager.dart';
+
+import 'package:data_editor/app/screens/dev_info.dart';
 import 'theme/base_theme.dart';
 import 'screens/home.dart';
 import 'widgets/shift_right_fixer.dart';
 import 'controllers/global_navigation.dart';
+import 'app_system_manager.dart';
 import 'screens/file_browser/file_browser.dart';
 
 /* 

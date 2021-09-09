@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:spark_lib/utility/print_env.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+
+import 'package:spark_lib/utility/print_env.dart';
+
 import 'package:data_editor/app/widgets/nav_drawer.dart';
 
 class DevInfo extends StatelessWidget {

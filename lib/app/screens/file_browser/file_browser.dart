@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
-import 'package:data_editor/app/controllers/filesystem_controller.dart';
-import 'fb_nav_drawer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:ui';
+
+import 'package:data_editor/app/controllers/filesystem_controller.dart';
+import 'fb_nav_drawer.dart';
 
 //TODOs:
 // - Make file system watching sane and not crash
