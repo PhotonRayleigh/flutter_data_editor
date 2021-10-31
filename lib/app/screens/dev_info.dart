@@ -27,7 +27,7 @@ class EnvInfoButtons extends StatelessWidget {
       children: [
         ElevatedButton(
           onPressed: () {
-            print_env_vars();
+            printEnvVars();
           },
           child: Text("Print Env Vars"),
         ),

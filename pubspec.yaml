@@ -31,7 +31,6 @@ dependencies:
   path: ^1.8.0
   path_provider: ^2.0.2
   permission_handler: ^8.1.4+2
-  get_storage:
   shared_preferences: ^2.0.6
   win32: ^2.2.8
   sqflite: # This only runs on mobile and Mac. Base implementation.

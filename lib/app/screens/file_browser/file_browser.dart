@@ -116,7 +116,7 @@ class FileBrowserState extends State<FileBrowser> {
           printSnackBar(SnackBar(
             content: Text("Invalid path: Does not exist"),
           ));
-          textControl.printError(info: "Invalid path: Does not exist.");
+          print("Invalid path: Does not exist.");
         } else {
           fsCon.setLocation(val).whenComplete(() => flagUpdate());
         }
@@ -130,8 +130,7 @@ class FileBrowserState extends State<FileBrowser> {
                     title: "Exception Text", middleText: e.toString());
               }),
         ));
-        textControl.printError(
-            info: "Error, caught exception checking currentDir.");
+        print("Error, caught exception checking currentDir.");
         print("Exception message: ${e.toString()}");
       }
     };
