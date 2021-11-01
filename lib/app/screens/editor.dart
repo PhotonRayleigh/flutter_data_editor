@@ -6,20 +6,19 @@ import 'package:spark_lib/utility/print_env.dart';
 
 import 'package:data_editor/app/widgets/nav_drawer.dart';
 import 'package:data_editor/app/widgets/data_editor_table.dart';
+import '../widgets/app_bar.dart';
 
-class Home extends StatelessWidget {
+class Editor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Align(
         alignment: Alignment.topLeft,
-        child: SingleChildScrollView(
-          child: DataEditorTable(),
-        ),
+        child: DataEditorTable(),
       ),
-      appBar: AppBar(
-        elevation: 2,
-        title: Text("Data Editor"),
+      appBar: MainAppBar.build(
+        context,
+        titleText: "Data Editor",
       ),
       drawer: NavDrawer(),
     );

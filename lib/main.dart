@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'dart:io';
 
 import 'app/app.dart';
 
@@ -9,4 +12,20 @@ import 'app/app.dart';
 
 void main() async {
   runApp(App());
+
+  // bitsdogo_window startup code.
+  // This is required when using the bitsdojo package,
+  // Window will not otherwise show.
+  // REMINDER: Custom runner code setup required PER PLATFORM
+  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    doWhenWindowReady(() {
+      final initialSize = Size(900, 600);
+      final minSize = Size(200, 200);
+      appWindow.size = initialSize;
+      appWindow.minSize = minSize;
+      appWindow.alignment = Alignment.center;
+      appWindow.title = "Data Editor";
+      appWindow.show();
+    });
+  }
 }

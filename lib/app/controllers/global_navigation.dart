@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:flutter/widgets.dart';
-import 'package:tuple/tuple.dart';
 
 class GlobalNavigation extends GetxController {
   Map<String, NavItem> navList = <String, NavItem>{};

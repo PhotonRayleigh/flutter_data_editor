@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:tuple/tuple.dart';
+import 'dart:io';
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 
 import 'package:spark_lib/widgets/shift_right_fixer.dart';
+import 'package:spark_lib/navigation/spark_nav.dart';
 
 import 'package:data_editor/app/screens/dev_info.dart';
 import 'theme/base_theme.dart';
-import 'screens/home.dart';
+import 'screens/editor.dart';
 import 'controllers/global_navigation.dart';
 import 'app_system_manager.dart';
 import 'screens/file_browser/file_browser.dart';
+import 'screens/app_routes.dart';
 
 /* 
     8/30/2021
@@ -32,6 +35,14 @@ import 'screens/file_browser/file_browser.dart';
     goes back. Fix that.
  */
 
+// 11/1/2021 UPDATE
+// TODO: Need to replace old navigator with new one from Spark Lib.
+// Need to integrate custom window bar on all screens, probably
+//  extract to Spark Lib
+// Need to switch all screens to Spark Pages
+// Probably extract AppSystemManager to Spark Lib and generalize it.
+//  I expect customization will be done via overrides.
+
 class App extends StatelessWidget {
   static const String appTitle = "Spark Data Editor";
 
@@ -40,21 +51,31 @@ class App extends StatelessWidget {
   App() {
     nav = Get.put(GlobalNavigation());
 
-    nav["/"] = NavItem("Home", () => Home());
+    nav["/"] = NavItem("Home", () => Editor());
     nav["/file browser"] = NavItem("File Browser", () => FileBrowser());
     nav["/dev info"] = NavItem("Developer Info", () => DevInfo());
   }
 
   @override
   Widget build(BuildContext context) {
-    return ShiftRightFixer(
-      child: AppSystemManager(
-        child: GetMaterialApp(
-          title: appTitle,
-          theme: baseTheme,
-          home: nav.navigate("/"),
-        ),
-      ),
+    AppNavigator.initialize(home: AppRoutes.editor);
+
+    var materialApp = MaterialApp(
+      navigatorKey: AppNavigator.rootNavKey,
+      debugShowCheckedModeBanner: false,
+      home: AppRoutes.editor,
+      theme: baseTheme,
+      title: appTitle,
     );
+
+    Widget sysManagerChild;
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      sysManagerChild =
+          WindowBorder(color: Colors.blueGrey, width: 1, child: materialApp);
+    } else {
+      sysManagerChild = materialApp;
+    }
+
+    return ShiftRightFixer(child: AppSystemManager(child: sysManagerChild));
   }
 }

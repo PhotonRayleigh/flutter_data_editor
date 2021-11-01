@@ -5,11 +5,17 @@ import 'dart:collection';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
-import 'package:tuple/tuple.dart';
 import 'package:path/path.dart' as p;
 
-typedef SubDir = Tuple3<List<FsListObject<Directory>>, List<FsListObject<File>>,
-    List<FsListObject<Link>>>;
+class SubDir {
+  List<FsListObject<Directory>> dirList;
+  List<FsListObject<File>> fileList;
+  List<FsListObject<Link>> linkList;
+  SubDir(
+      {this.dirList = const [],
+      this.fileList = const [],
+      this.linkList = const []});
+}
 
 class FsController extends GetxController {
   late Future init;
@@ -32,10 +38,7 @@ class FsController extends GetxController {
   var dirs = <FsListObject<Directory>>[];
   var files = <FsListObject<File>>[];
   var links = <FsListObject<Link>>[];
-  var expandedDirs = <
-      String,
-      Tuple3<List<FsListObject<Directory>>, List<FsListObject<File>>,
-          List<FsListObject<Link>>>>{};
+  var expandedDirs = <String, SubDir>{};
 
   Queue<String> backHistory = Queue<String>();
   Queue<String> forwardHistory = Queue<String>();
@@ -240,9 +243,9 @@ class FsController extends GetxController {
     List<FsListObject<Link>> workingLinks;
 
     if (subDirPath != null) {
-      workingDirs = expandedDirs[subDirPath]!.item1;
-      workingFiles = expandedDirs[subDirPath]!.item2;
-      workingLinks = expandedDirs[subDirPath]!.item3;
+      workingDirs = expandedDirs[subDirPath]!.dirList;
+      workingFiles = expandedDirs[subDirPath]!.fileList;
+      workingLinks = expandedDirs[subDirPath]!.linkList;
     } else {
       workingDirs = dirs;
       workingFiles = files;
@@ -438,14 +441,14 @@ class FsController extends GetxController {
     }
 
     // Work on all expanded directories
-    expandedDirs.forEach((path, tuple) {
-      for (var entry in tuple.item1) {
+    expandedDirs.forEach((path, subDir) {
+      for (var entry in subDir.dirList) {
         entry.selected = setting;
       }
-      for (var entry in tuple.item2) {
+      for (var entry in subDir.fileList) {
         entry.selected = setting;
       }
-      for (var entry in tuple.item3) {
+      for (var entry in subDir.linkList) {
         entry.selected = setting;
       }
     });

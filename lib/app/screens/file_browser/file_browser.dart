@@ -232,9 +232,9 @@ class FileBrowserState extends State<FileBrowser> {
     List<FsListObject<Link>> workingLinks;
 
     if (subPath != null) {
-      workingDirs = fsCon.expandedDirs[subPath]!.item1;
-      workingFiles = fsCon.expandedDirs[subPath]!.item2;
-      workingLinks = fsCon.expandedDirs[subPath]!.item3;
+      workingDirs = fsCon.expandedDirs[subPath]!.dirList;
+      workingFiles = fsCon.expandedDirs[subPath]!.fileList;
+      workingLinks = fsCon.expandedDirs[subPath]!.linkList;
     } else {
       workingDirs = fsCon.dirs;
       workingFiles = fsCon.files;
@@ -278,8 +278,7 @@ class FileBrowserState extends State<FileBrowser> {
                 flagUpdate();
               } else {
                 item.expanded = true;
-                fsCon.expandedDirs[path] = SubDir(<FsListObject<Directory>>[],
-                    <FsListObject<File>>[], <FsListObject<Link>>[]);
+                fsCon.expandedDirs[path] = SubDir();
                 fsCon.scanDir(subDirPath: path).whenComplete(flagUpdate);
               }
             };
@@ -292,8 +291,7 @@ class FileBrowserState extends State<FileBrowser> {
                 flagUpdate();
               } else {
                 item.expanded = true;
-                fsCon.expandedDirs[path] = SubDir(<FsListObject<Directory>>[],
-                    <FsListObject<File>>[], <FsListObject<Link>>[]);
+                fsCon.expandedDirs[path] = SubDir();
                 fsCon.scanDir(subDirPath: path).whenComplete(flagUpdate);
               }
             };
