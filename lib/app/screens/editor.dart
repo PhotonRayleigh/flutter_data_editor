@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:spark_lib/utility/print_env.dart';
+import 'package:spark_lib/navigation/spark_nav.dart';
 
 import 'package:data_editor/app/widgets/nav_drawer.dart';
 import 'package:data_editor/app/widgets/data_editor_table.dart';
@@ -11,7 +12,8 @@ import '../widgets/app_bar.dart';
 class Editor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return SparkPage(
+        child: Scaffold(
       body: Align(
         alignment: Alignment.topLeft,
         child: DataEditorTable(),
@@ -21,7 +23,7 @@ class Editor extends StatelessWidget {
         titleText: "Data Editor",
       ),
       drawer: NavDrawer(),
-    );
+    ));
   }
 }
 

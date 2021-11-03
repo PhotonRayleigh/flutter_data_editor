@@ -7,7 +7,7 @@ import 'package:spark_lib/navigation/spark_nav.dart';
 
 class MainAppBar {
   static AppBar build(BuildContext context,
-      {Key? key, required String titleText}) {
+      {Key? key, required String titleText, List<Widget> actions = const []}) {
     Widget appBarTitle;
     List<Widget> appBarActions = [];
     WindowButtonColors windowButtonColors =
@@ -16,13 +16,7 @@ class MainAppBar {
     if (!kIsWeb &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       appBarActions = [
-        // IconButton(
-        //   onPressed: () {
-        //     AppNavigator.defaultBack();
-        //   },
-        //   icon: Icon(Icons.arrow_back),
-        //   color: Colors.amber[300],
-        // ),
+        ...actions,
         if (AppNavigator.currentView != AppNavigator.homeScreen)
           IconButton(
             onPressed: () {
@@ -65,6 +59,8 @@ class MainAppBar {
           fontSize: Theme.of(context).textTheme.headline5?.fontSize,
         ),
       );
+
+      appBarActions = actions;
     }
 
     return AppBar(

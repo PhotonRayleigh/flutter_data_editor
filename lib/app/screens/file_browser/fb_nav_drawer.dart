@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:data_editor/app/controllers/global_navigation.dart';
 import 'package:data_editor/app/controllers/filesystem_controller.dart';
+import 'package:spark_lib/navigation/app_navigator.dart';
 
 class FbNavDrawer extends StatefulWidget {
   FbNavDrawer(this.controller, {Key? key}) : super(key: key);
@@ -40,10 +41,9 @@ class FbNavDrawerState extends State<FbNavDrawer> {
               IconButton(
                   icon: Icon(Icons.arrow_back),
                   onPressed: () {
-                    // How do I handle going back?
-                    Get.to(Get.find<GlobalNavigation>().navigate("/"));
+                    AppNavigator.navigateBack();
                   }),
-              Text("Return to home"),
+              Text("Return to last screen"),
               Expanded(
                 child: Align(
                   alignment: Alignment.centerRight,
@@ -86,8 +86,9 @@ class FbNavDrawerState extends State<FbNavDrawer> {
 
     var drawerBody = Expanded(
       child: ListView(
+        controller: ScrollController(),
         children: [
-          for (var tile in listTiles) tile,
+          ...listTiles,
         ],
       ),
     );
@@ -107,7 +108,7 @@ class FbNavDrawerState extends State<FbNavDrawer> {
             ),
             confirm: TextButton(
               child: Text("Ok"),
-              onPressed: Get.back,
+              onPressed: AppNavigator.safePop,
             ));
       },
     );
@@ -174,7 +175,7 @@ class FbNavDrawerState extends State<FbNavDrawer> {
               controller
                   .setLocation(s)
                   .whenComplete(() => controller.fileBrowserRefresh());
-              Get.back();
+              AppNavigator.safePop();
             }),
     ];
     setState(() {});

@@ -6,6 +6,9 @@ import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:ui';
 
+import 'package:spark_lib/navigation/spark_nav.dart';
+
+import 'package:data_editor/app/widgets/app_bar.dart';
 import 'package:data_editor/app/controllers/filesystem_controller.dart';
 import 'fb_nav_drawer.dart';
 
@@ -152,8 +155,9 @@ class FileBrowserState extends State<FileBrowser> {
               icon: Icon(Icons.cancel))),
     );
 
-    var appBar = AppBar(
-      title: Text("File Browser"),
+    var appBar = MainAppBar.build(
+      context,
+      titleText: "File Browser",
       actions: [
         buildBackButton(),
         buildForwardButton(),
@@ -178,12 +182,13 @@ class FileBrowserState extends State<FileBrowser> {
       ],
     );
 
-    return Scaffold(
+    return SparkPage(
+        child: Scaffold(
       key: fsKey,
       appBar: appBar,
       drawer: FbNavDrawer(fsCon),
       body: body,
-    );
+    ));
   }
 
   IconButton buildForwardButton() {

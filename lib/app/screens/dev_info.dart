@@ -3,20 +3,23 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:spark_lib/utility/print_env.dart';
+import 'package:spark_lib/navigation/spark_nav.dart';
 
 import 'package:data_editor/app/widgets/nav_drawer.dart';
+import '../widgets/app_bar.dart';
 
 class DevInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Dev Info"),
+    return SparkPage(
+        child: Scaffold(
+      appBar: MainAppBar.build(
+        context,
+        titleText: "Dev Info",
       ),
       drawer: NavDrawer(),
       body: Center(child: FittedBox(child: EnvInfoButtons())),
-    );
+    ));
   }
 }
 
