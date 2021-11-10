@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'dart:io';
 
-class EditorTableController extends GetxController {
+class EditorTableController {
   // What is my datascheme?
   // Mode 1: Columns and rows
   // Mode 2: Keys and values
@@ -9,25 +9,13 @@ class EditorTableController extends GetxController {
   List<TabularData> tables = <TabularData>[];
   List<KeyValueData> keyVals = <KeyValueData>[];
 
-  EditorTableController();
-
-  @override
-  void onInit() {
-    super.onInit();
-    // Init first
-
+  EditorTableController() {
     tables.add(TabularData()
       ..columnDefs.add(String)
       ..columnDefs.add(String)
       ..columnDefs.add(double));
 
     tables[0].rows.add({0, "Hello", "World", 3.184});
-  }
-
-  @override
-  void onClose() {
-    // Close last
-    super.onClose();
   }
 }
 

@@ -48,13 +48,7 @@ class App extends StatelessWidget {
 
   late final GlobalNavigation nav;
 
-  App() {
-    nav = Get.put(GlobalNavigation());
-
-    nav["/"] = NavItem("Home", () => Editor());
-    nav["/file browser"] = NavItem("File Browser", () => FileBrowser());
-    nav["/dev info"] = NavItem("Developer Info", () => DevInfo());
-  }
+  App();
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +70,6 @@ class App extends StatelessWidget {
       sysManagerChild = materialApp;
     }
 
-    return ShiftRightFixer(child: AppSystemManager(child: sysManagerChild));
+    return ShiftRightFixer(child: AppManager(child: sysManagerChild));
   }
 }

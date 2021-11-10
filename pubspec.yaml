@@ -41,6 +41,12 @@ dependencies:
   mysql1: ^0.19.2
   more: ^3.3.0
   flutter_acrylic: ^0.0.2
+  flash: ^2.0.3
+  # Some new state managers to try
+  scoped_model: ^1.1.0
+  get_it: ^7.2.0
+  rxdart: ^0.27.2
+  get_it_mixin: ^3.1.3
 
 
 

@@ -1,3 +1,4 @@
+import 'package:flash/flash.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -14,10 +15,38 @@ class Editor extends StatelessWidget {
   Widget build(BuildContext context) {
     return SparkPage(
         child: Scaffold(
-      body: Align(
-        alignment: Alignment.topLeft,
-        child: DataEditorTable(),
-      ),
+      body: Column(children: [
+        Align(
+          alignment: Alignment.topLeft,
+          child: DataEditorTable(),
+        ),
+        ElevatedButton(
+          child: Text("Show flash"),
+          onPressed: () {
+            showFlash(
+                context: context,
+                builder: (context, controller) {
+                  return Flash.dialog(
+                    controller: controller,
+                    // Isn't there a fractionally sized box?
+                    // Maybe use that for dialogs.
+                    // Or fixed size.
+                    child: Container(
+                        padding: EdgeInsets.only(left: 30, right: 30),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("Hello!"),
+                              TextButton(
+                                  onPressed: controller.dismiss,
+                                  child: Text("X"))
+                            ])),
+                    barrierDismissible: true,
+                  );
+                });
+          },
+        ),
+      ]),
       appBar: MainAppBar.build(
         context,
         titleText: "Data Editor",

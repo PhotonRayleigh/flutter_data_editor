@@ -5,6 +5,9 @@ import 'package:get/get.dart';
 import 'package:data_editor/app/controllers/editor_table_controller.dart';
 
 class DataEditorTable extends StatefulWidget {
+  DataEditorTable({this.controller});
+  final EditorTableController? controller;
+
   @override
   State<StatefulWidget> createState() {
     return DataEditorTableState();
@@ -18,11 +21,7 @@ class DataEditorTableState extends State<DataEditorTable> {
   void initState() {
     super.initState();
 
-    try {
-      controller = Get.find<EditorTableController>();
-    } catch (e) {
-      controller = Get.put(EditorTableController());
-    }
+    controller = EditorTableController();
   }
 
   @override
