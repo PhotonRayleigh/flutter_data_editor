@@ -8,13 +8,17 @@ import 'dart:async';
 import 'package:path/path.dart' as p;
 
 class SubDir {
-  List<FsListObject<Directory>> dirList;
-  List<FsListObject<File>> fileList;
-  List<FsListObject<Link>> linkList;
+  List<FsListObject<Directory>> dirList = [];
+  List<FsListObject<File>> fileList = [];
+  List<FsListObject<Link>> linkList = [];
   SubDir(
-      {this.dirList = const [],
-      this.fileList = const [],
-      this.linkList = const []});
+      {List<FsListObject<Directory>>? dirList,
+      List<FsListObject<File>>? fileList,
+      List<FsListObject<Link>>? linkList}) {
+    this.dirList = dirList ?? this.dirList;
+    this.fileList = fileList ?? this.fileList;
+    this.linkList = linkList ?? this.linkList;
+  }
 }
 
 class FsController extends GetxController {
