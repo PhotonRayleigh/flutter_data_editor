@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'dart:io';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 
 import 'package:spark_lib/widgets/shift_right_fixer.dart';
 import 'package:spark_lib/navigation/spark_nav.dart';
+import 'package:spark_lib/app/spark_app.dart';
 
-import 'package:data_editor/app/screens/dev_info.dart';
 import 'theme/base_theme.dart';
-import 'screens/editor.dart';
 import 'controllers/global_navigation.dart';
 import 'app_system_manager.dart';
-import 'screens/file_browser/file_browser.dart';
 import 'screens/app_routes.dart';
 
 /* 
@@ -35,41 +32,19 @@ import 'screens/app_routes.dart';
     goes back. Fix that.
  */
 
-// 11/1/2021 UPDATE
-// TODO: Need to replace old navigator with new one from Spark Lib.
-// Need to integrate custom window bar on all screens, probably
-//  extract to Spark Lib
-// Need to switch all screens to Spark Pages
-// Probably extract AppSystemManager to Spark Lib and generalize it.
-//  I expect customization will be done via overrides.
-
 class App extends StatelessWidget {
   static const String appTitle = "Spark Data Editor";
-
-  late final GlobalNavigation nav;
 
   App();
 
   @override
   Widget build(BuildContext context) {
-    AppNavigator.initialize(home: AppRoutes.editor);
-
-    var materialApp = MaterialApp(
-      navigatorKey: AppNavigator.rootNavKey,
-      debugShowCheckedModeBanner: false,
+    return SparkApp.build(
       home: AppRoutes.editor,
       theme: baseTheme,
       title: appTitle,
+      systemManager: ({required child, key}) =>
+          AppManager(child: child, key: key),
     );
-
-    Widget sysManagerChild;
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      sysManagerChild =
-          WindowBorder(color: Colors.blueGrey, width: 1, child: materialApp);
-    } else {
-      sysManagerChild = materialApp;
-    }
-
-    return ShiftRightFixer(child: AppManager(child: sysManagerChild));
   }
 }
