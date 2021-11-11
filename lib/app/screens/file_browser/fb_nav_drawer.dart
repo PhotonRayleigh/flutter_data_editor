@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 
-import 'package:data_editor/app/controllers/global_navigation.dart';
 import 'package:data_editor/app/controllers/filesystem_controller.dart';
 import 'package:spark_lib/navigation/app_navigator.dart';
 

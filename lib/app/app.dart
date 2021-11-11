@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:bitsdojo_window/bitsdojo_window.dart';
 
-import 'package:spark_lib/widgets/shift_right_fixer.dart';
-import 'package:spark_lib/navigation/spark_nav.dart';
 import 'package:spark_lib/app/spark_app.dart';
 
 import 'theme/base_theme.dart';
-import 'controllers/global_navigation.dart';
 import 'app_system_manager.dart';
 import 'screens/app_routes.dart';
 
