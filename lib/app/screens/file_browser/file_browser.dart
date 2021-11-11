@@ -7,8 +7,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:ui';
 
 import 'package:spark_lib/navigation/spark_nav.dart';
+import 'package:spark_lib/custom_window/window_appbar.dart';
 
-import 'package:data_editor/app/widgets/app_bar.dart';
 import 'package:data_editor/app/controllers/filesystem_controller.dart';
 import 'fb_nav_drawer.dart';
 
@@ -155,7 +155,7 @@ class FileBrowserState extends State<FileBrowser> {
               icon: Icon(Icons.cancel))),
     );
 
-    var appBar = MainAppBar.build(
+    var appBar = WindowAppBar.build(
       context,
       titleText: "File Browser",
       actions: [

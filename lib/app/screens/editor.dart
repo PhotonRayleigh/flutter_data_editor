@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
+import 'package:spark_lib/custom_window/window_appbar.dart';
 import 'package:spark_lib/utility/print_env.dart';
 import 'package:spark_lib/navigation/spark_nav.dart';
 
 import 'package:data_editor/app/widgets/nav_drawer.dart';
 import 'package:data_editor/app/widgets/data_editor_table.dart';
-import '../widgets/app_bar.dart';
 
 class Editor extends StatelessWidget {
   @override
@@ -47,7 +47,7 @@ class Editor extends StatelessWidget {
           },
         ),
       ]),
-      appBar: MainAppBar.build(
+      appBar: WindowAppBar.build(
         context,
         titleText: "Data Editor",
       ),
