@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:spark_lib/custom_window/window_appbar.dart';
 import 'package:spark_lib/utility/print_env.dart';
 import 'package:spark_lib/navigation/spark_nav.dart';
+import 'package:spark_lib/notifications/notifications.dart';
 
 import 'package:data_editor/app/widgets/nav_drawer.dart';
 import 'package:data_editor/app/widgets/data_editor_table.dart';
@@ -23,27 +24,10 @@ class Editor extends StatelessWidget {
         ElevatedButton(
           child: Text("Show flash"),
           onPressed: () {
-            showFlash(
-                context: context,
-                builder: (context, controller) {
-                  return Flash.dialog(
-                    controller: controller,
-                    // Isn't there a fractionally sized box?
-                    // Maybe use that for dialogs.
-                    // Or fixed size.
-                    child: Container(
-                        padding: EdgeInsets.only(left: 30, right: 30),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text("Hello!"),
-                              TextButton(
-                                  onPressed: controller.dismiss,
-                                  child: Text("X"))
-                            ])),
-                    barrierDismissible: true,
-                  );
-                });
+            flashDialog(context,
+                title: "Information:",
+                message: "This is a test notification." +
+                    "\nNotifications can be customized to display information to the user.");
           },
         ),
       ]),
