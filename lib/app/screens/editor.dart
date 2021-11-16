@@ -22,14 +22,52 @@ class Editor extends StatelessWidget {
           child: DataEditorTable(),
         ),
         ElevatedButton(
-          child: Text("Show flash"),
+          child: Text("Show dialog"),
           onPressed: () {
-            flashDialog(context,
-                title: "Information:",
+            showBaseDialog(context,
+                title: "Information",
                 message: "This is a test notification." +
                     "\nNotifications can be customized to display information to the user.");
           },
         ),
+        SizedBox(
+          height: 10,
+        ),
+        ElevatedButton(
+            onPressed: () {
+              var smState = ScaffoldMessenger.of(context);
+              smState.showSnackBar(SnackBar(
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 3),
+                content: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Text("Show me!"),
+                    Expanded(
+                      child: SizedBox(),
+                    ),
+                    TextButton(
+                      child: Text(
+                        "Ok",
+                        style: TextStyle(color: Colors.grey[900]),
+                      ),
+                      onPressed: () {
+                        smState.hideCurrentSnackBar();
+                      },
+                    )
+                  ],
+                ),
+                // ERROR: Clicking the action currently causes Flutter to break.
+                // Have not submitted bug report yet. - 11/16/2021
+                // action: SnackBarAction(
+                //   label: "Ok",
+                //   onPressed: () {
+                //     smState.hideCurrentSnackBar();
+                //   },
+                // ),
+              ));
+            },
+            child: Text("Show Toast")),
       ]),
       appBar: WindowAppBar.build(
         context,
