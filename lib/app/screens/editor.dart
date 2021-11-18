@@ -45,130 +45,18 @@ class Editor extends StatelessWidget implements TickerProvider {
         ),
         ElevatedButton(
             onPressed: () {
-              var nav = Navigator.of(context);
-
-              var overlay = Overlay.of(context);
-              void Function() entryProxy = () {};
-
-              var animationController = AnimationController(
-                  vsync: this, duration: Duration(milliseconds: 150));
-              Animation<double> animation = CurvedAnimation(
-                  parent: animationController, curve: Curves.easeIn);
-
-              var entry = OverlayEntry(builder: (context) {
-                var screenSize = MediaQuery.of(context).size;
-                return Theme(
-                  data: baseTheme,
-                  child: FadeTransition(
-                    opacity: animation,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Transform.translate(
-                        offset: Offset(0, -20),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints.loose(
-                              Size(screenSize.width * 0.8, screenSize.height)),
-                          child: ClipRect(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                              child: Material(
-                                elevation: 6,
-                                borderRadius: BorderRadius.circular(10),
-                                color: Colors.white54,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Flexible(
-                                        flex: 1,
-                                        fit: FlexFit.loose,
-                                        child: Text(
-                                          "Hello! Have some test text to work with!",
-                                          overflow: TextOverflow.ellipsis,
-                                          softWrap: false,
-                                          style: baseTheme
-                                              .primaryTextTheme.bodyText1!
-                                              .copyWith(
-                                                  color: Colors.grey[900],
-                                                  fontSize: 16,
-                                                  fontWeight:
-                                                      FontWeight.normal),
-                                        ),
-                                      ),
-                                      TextButton(
-                                        child: Text(
-                                          "Dismiss",
-                                        ),
-                                        onPressed: () => entryProxy(),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              });
-              overlay!.insert(entry);
-              animationController.forward();
-              var time = Timer(
-                  Duration(seconds: 3),
-                  () => animationController
-                      .reverse()
-                      .whenComplete(() => entry.remove()));
-              entryProxy = () {
-                time.cancel();
-                animationController
-                    .reverse()
-                    .whenComplete(() => entry.remove());
-              };
-
-              // var smState = ScaffoldMessenger.of(context);
-              // smState.removeCurrentSnackBar();
-              // smState.showSnackBar(SnackBar(
-              //   behavior: SnackBarBehavior.floating,
-              //   duration: Duration(seconds: 3),
-              //   backgroundColor: Colors.transparent,
-              //   elevation: 0,
-              //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-              //   content: Container(
-              //     color: Colors.white,
-              //     child: Row(
-              //       mainAxisSize: MainAxisSize.min,
-              //       mainAxisAlignment: MainAxisAlignment.center,
-              //       children: [
-              //         Text("Show me!"),
-              //         SizedBox(
-              //           width: 20,
-              //         ),
-              //         TextButton(
-              //           child: Text(
-              //             "Ok",
-              //             style: TextStyle(color: Colors.grey[900]),
-              //           ),
-              //           onPressed: () {
-              //             smState.hideCurrentSnackBar();
-              //           },
-              //         )
-              //       ],
-              //     ),
-              //   ),
-              //   // ERROR: Clicking the action currently causes Flutter to break.
-              //   // Have not submitted bug report yet. - 11/16/2021
-              //   // action: SnackBarAction(
-              //   //   label: "Ok",
-              //   //   onPressed: () {
-              //   //     smState.hideCurrentSnackBar();
-              //   //   },
-              //   // ),
-              // ));
+              showSnackBar(context,
+                  message: "This is a snack bar notification");
             },
-            child: Text("Show Toast")),
+            child: Text("Show Snackbar")),
+        ElevatedButton(
+            onPressed: () {
+              showBanner(
+                context,
+                message: "This is a simple banner!",
+              );
+            },
+            child: Text("Show Banner")),
       ]),
       appBar: WindowAppBar.build(
         context,
