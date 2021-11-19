@@ -186,14 +186,15 @@ class FsController extends GetxController {
 
       // This is far from clean at the moment, but it's a start.
       var dirFutures = <Future<Directory?>>[];
-      dirFutures.add(getApplicationDocumentsDirectory());
-      dirFutures.add(getApplicationSupportDirectory());
+      dirFutures.add(getApplicationDocumentsDirectory()); // root app folder
+      dirFutures.add(getApplicationSupportDirectory()); // files
       // dirFutures.add(getDownloadsDirectory()); // Doesn't work on Android
-      dirFutures.add(getTemporaryDirectory());
+      dirFutures.add(getTemporaryDirectory()); // Cache
 
       var dirsFutures = <Future<List<Directory>?>>[];
-      dirsFutures.add(getExternalCacheDirectories());
-      dirsFutures.add(getExternalStorageDirectories());
+      dirsFutures.add(getExternalCacheDirectories()); // cache in shared storage
+      dirsFutures
+          .add(getExternalStorageDirectories()); // files in shared storage
 
       var dirs = await Future.wait(dirFutures);
       var dirLists = await Future.wait(dirsFutures);

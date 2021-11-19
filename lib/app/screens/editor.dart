@@ -11,6 +11,7 @@ import 'package:spark_lib/custom_window/window_appbar.dart';
 import 'package:spark_lib/utility/print_env.dart';
 import 'package:spark_lib/navigation/spark_nav.dart';
 import 'package:spark_lib/notifications/notifications.dart';
+import 'package:spark_lib/filesystem/file_paths.dart';
 
 import 'package:data_editor/app/widgets/nav_drawer.dart';
 import 'package:data_editor/app/widgets/data_editor_table.dart';
@@ -57,6 +58,73 @@ class Editor extends StatelessWidget implements TickerProvider {
               );
             },
             child: Text("Show Banner")),
+        ElevatedButton(
+            onPressed: () async {
+              await systemPaths.ready;
+              var sysPaths = systemPaths;
+              List<String> paths = [];
+              if (sysPaths is WindowsPaths) {
+                paths = [
+                  "System Root: ${sysPaths.systemRoot}",
+                  "App Storage: ${sysPaths.applicationStorage}",
+                  "User Directory: ${sysPaths.userDirectory}",
+                  "Temp Directory: ${sysPaths.tempDirectory}",
+                  "Documents Directory: ${sysPaths.documentsDirectory}",
+                  "Downloads Directory: ${sysPaths.downloadsDirectory}",
+                  "Program Files: ${sysPaths.programFiles}",
+                  "Program Files x86: ${sysPaths.programFilesx86}",
+                ];
+              } else if (sysPaths is AndroidPaths) {
+                paths = [
+                  "System Root: ${sysPaths.systemRoot}",
+                  "App Storage: ${sysPaths.applicationStorage}",
+                  "User Directory: ${sysPaths.userDirectory}",
+                  "Temp Directory: ${sysPaths.tempDirectory}",
+                  "Documents Directory: ${sysPaths.documentsDirectory}",
+                  "Downloads Directory: ${sysPaths.downloadsDirectory}",
+                  "Mount: ${sysPaths.mount}",
+                  "System: ${sysPaths.system}",
+                  "Usercache: ${sysPaths.userCache}",
+                ];
+              } else if (sysPaths is MacOSPaths) {
+                paths = [
+                  "System Root: ${sysPaths.systemRoot}",
+                  "App Storage: ${sysPaths.applicationStorage}",
+                  "User Directory: ${sysPaths.userDirectory}",
+                  "Temp Directory: ${sysPaths.tempDirectory}",
+                  "Documents Directory: ${sysPaths.documentsDirectory}",
+                  "Downloads Directory: ${sysPaths.downloadsDirectory}",
+                ];
+              } else if (sysPaths is LinuxPaths) {
+                paths = [
+                  "System Root: ${sysPaths.systemRoot}",
+                  "App Storage: ${sysPaths.applicationStorage}",
+                  "User Directory: ${sysPaths.userDirectory}",
+                  "Temp Directory: ${sysPaths.tempDirectory}",
+                  "Documents Directory: ${sysPaths.documentsDirectory}",
+                  "Downloads Directory: ${sysPaths.downloadsDirectory}",
+                ];
+              } else if (sysPaths is IOSPaths) {
+                paths = [
+                  "System Root: ${sysPaths.systemRoot}",
+                  "App Storage: ${sysPaths.applicationStorage}",
+                  "User Directory: ${sysPaths.userDirectory}",
+                  "Temp Directory: ${sysPaths.tempDirectory}",
+                  "Documents Directory: ${sysPaths.documentsDirectory}",
+                  "Downloads Directory: ${sysPaths.downloadsDirectory}",
+                ];
+              }
+              String masterList = "";
+              for (var path in paths) {
+                masterList = masterList + path + "\n";
+              }
+              masterList = "Directories:\n" + masterList;
+              showBaseDialog(
+                context,
+                message: masterList,
+              );
+            },
+            child: Text("Print Directories")),
       ]),
       appBar: WindowAppBar.build(
         context,
