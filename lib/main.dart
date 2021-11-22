@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'dart:io';
+import 'package:flutter_acrylic/flutter_acrylic.dart';
 
 import 'package:spark_lib/custom_window/bitsdojo_boilerplate.dart';
 
