@@ -1,3 +1,5 @@
+**Notice:** After working on this project then taking a break, I've decided to depreciate this specific project. I've pulled the standalone file browser code into spark_lib. I am planning on integrating the data editing feature I intended for this app into a larger app project I have planned.
+
 # Flutter Data Editor
 
 This is a WIP sample data editor program written using the [Flutter Framework](https://flutter.dev/).
